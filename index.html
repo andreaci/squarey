@@ -518,12 +518,28 @@
   function commitSegment(a, b) {
     const n = Math.max(Math.abs(b.x - a.x), Math.abs(b.y - a.y));
     const sx = Math.sign(b.x - a.x), sy = Math.sign(b.y - a.y);
-    const snap = snapshot(); let added = false;
+    const snap = snapshot(), added = [];
     for (let i = 0; i < n; i++) {
       const k = ekey(a.x + sx * i, a.y + sy * i, a.x + sx * (i + 1), a.y + sy * (i + 1));
-      if (!edges.has(k)) { edges.add(k); added = true; }
+      if (!edges.has(k)) { edges.add(k); added.push(k); }
     }
-    if (added) { pushHistory(snap); changed(); }
+    if (added.length) { pushHistory(snap); changed(); }
+    return added;
+  }
+  // i due triangoli ai lati opposti di un segmento unitario
+  function sidesOf(k) {
+    const [x1, y1, x2, y2] = k.split(',').map(Number);   // ordinati: x1<x2 oppure x1==x2 e y1<y2
+    if (y1 === y2) return [[x1, y1 - 1, 2], [x1, y1, 0]];       // orizzontale
+    if (x1 === x2) return [[x1 - 1, y1, 1], [x1, y1, 3]];       // verticale
+    if (y2 > y1) return [[x1, y1, 0], [x1, y1, 3]];             // "\" nel quadretto (x1,y1)
+    return [[x1, y2, 0], [x1, y2, 1]];                          // "/" nel quadretto (x1,y2)
+  }
+  // il segmento chiude (o divide) un poligono se i suoi due lati non comunicano più
+  function separates(k) {
+    const [A, B] = sidesOf(k);
+    const ra = region(A);
+    if (!ra) return !!region(B);          // A è fuori: chiuso solo se B è racchiuso
+    return !ra.includes(B.join(','));
   }
   function endChain() { anchor = null; chainStart = null; chainPts = new Set(); anchorFromThisDown = false; }
 
@@ -820,10 +836,11 @@
       const t = snapDir(anchor, toWorld(e.clientX, e.clientY));
       const moved = Math.hypot(e.clientX - downScreen.x, e.clientY - downScreen.y) > 6;
       if (!eq(t, anchor)) {
-        commitSegment(anchor, t);
-        // chiuso = si torna su un punto già toccato da questa spezzata
-        const closed = chainPts.has(pk(t));
-        if ((closed && settings.stopOnClose) || (moved && anchorFromThisDown)) endChain();
+        const added = commitSegment(anchor, t);
+        // chiuso = si torna su un punto della spezzata, oppure il tratto chiude/divide
+        // una zona insieme alle linee già disegnate
+        const closed = settings.stopOnClose && (chainPts.has(pk(t)) || added.some(separates));
+        if (closed || (moved && anchorFromThisDown)) endChain();
         else { anchor = t; chainPts.add(pk(t)); }
       }
     }
