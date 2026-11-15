@@ -333,7 +333,13 @@
     return typeof v === 'function' ? v(...args) : v;
   }
 
-  Object.assign(settings, readCookie());
+  // il cookie ha la precedenza; se non c'è (es. pagina aperta dal disco) si usa localStorage
+  function readStoredSettings() {
+    const c = readCookie();
+    if (Object.keys(c).length) return c;
+    try { return JSON.parse(localStorage.getItem(COOKIE) || '{}') || {}; } catch (_) { return {}; }
+  }
+  Object.assign(settings, readStoredSettings());
   sanitizeSettings();
   let PAPER = settings.bg, GRID = '#e8e1d5';
   // quadretti: lo sfondo mescolato un po' verso il grigio delle linee
@@ -935,11 +941,14 @@
   const settingsEl = document.getElementById('settings');
   const bSettings = document.getElementById('bSettings');
   function saveSettings() {
-    document.cookie = `${COOKIE}=${encodeURIComponent(JSON.stringify(settings))}; max-age=31536000; path=/; SameSite=Lax`;
+    const json = JSON.stringify(settings);
+    document.cookie = `${COOKIE}=${encodeURIComponent(json)}; max-age=31536000; path=/; SameSite=Lax`;
+    try { localStorage.setItem(COOKIE, json); } catch (_) {}
   }
   document.getElementById('bResetSettings').onclick = () => {
     Object.assign(settings, DEFAULT_SETTINGS);
     document.cookie = `${COOKIE}=; max-age=0; path=/; SameSite=Lax`;
+    try { localStorage.removeItem(COOKIE); } catch (_) {}
     document.getElementById('cStop').checked = settings.stopOnClose;
     applyBackground(); applyLang();
     toast(tr('set.resetDone'));

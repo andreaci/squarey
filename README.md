@@ -12,15 +12,7 @@ Un piccolo foglio a quadretti, accogliente, per disegnare. Disegni poligoni lung
 
 ### Getting started
 
-squarey is a single file, `index.html`, with no build step and no dependencies.
-
-You can open `index.html` directly in a browser, but **settings are stored in a cookie** and browsers don't keep cookies for pages opened from disk. To keep your settings, serve the folder locally:
-
-```bash
-python -m http.server 5173
-```
-
-Then open <http://localhost:5173>.
+squarey is a single static file, `index.html`, with no build step and no dependencies. Open it in a browser, or put it on any static host.
 
 ### Drawing
 
@@ -56,7 +48,7 @@ There are ten pastels: peach, apricot, butter, sage, mint, sky, periwinkle, lave
 - **When the polygon closes, stop drawing:** when you return to a point the current line has already passed, drawing stops. On by default.
 - **Reset settings:** restores the defaults.
 
-Stroke and grid styles are also applied to SVG and PNG exports. Settings are stored in the `squarey_settings` cookie for one year.
+Stroke and grid styles are also applied to SVG and PNG exports. Settings are stored in the `squarey_settings` cookie for one year, with a copy in `localStorage`, so they're kept even when the page is opened straight from disk.
 
 ### Keyboard shortcuts
 
@@ -84,15 +76,7 @@ Stroke and grid styles are also applied to SVG and PNG exports. Settings are sto
 
 ### Per iniziare
 
-squarey è un unico file, `index.html`, senza build e senza dipendenze.
-
-Puoi aprire `index.html` direttamente nel browser, ma **le impostazioni sono salvate in un cookie** e i browser non conservano i cookie delle pagine aperte dal disco. Per conservare le impostazioni, servi la cartella in locale:
-
-```bash
-python -m http.server 5173
-```
-
-Poi apri <http://localhost:5173>.
+squarey è un unico file statico, `index.html`, senza build e senza dipendenze. Aprilo nel browser o mettilo su un qualsiasi hosting statico.
 
 ### Disegnare
 
@@ -128,7 +112,7 @@ Ci sono dieci pastelli: pesca, albicocca, burro, salvia, menta, cielo, pervinca,
 - **Quando il poligono si chiude, smetti di disegnare:** quando torni su un punto già toccato dalla linea in corso, il disegno si stacca. Attiva di default.
 - **Ripristina impostazioni:** torna alle impostazioni iniziali.
 
-Tratto e quadretti valgono anche per l'esportazione in SVG e PNG. Le impostazioni sono salvate nel cookie `squarey_settings` per un anno.
+Tratto e quadretti valgono anche per l'esportazione in SVG e PNG. Le impostazioni sono salvate nel cookie `squarey_settings` per un anno, con una copia in `localStorage`, così restano anche quando la pagina è aperta direttamente dal disco.
 
 ### Scorciatoie da tastiera
 
