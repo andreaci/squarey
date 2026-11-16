@@ -39,7 +39,7 @@ Every line remembers the day it was drawn. The **Story** button (or `S`) recolor
 - lines take a darker shade of their own day's color;
 - your own fill colors are hidden while story mode is on, and come back when you turn it off.
 
-A **day by day** panel lists the days with their colors. Click a day to see the drawing as it was at the end of that day, and click it again to see everything. ▶ replays the days one after the other. Lines drawn before story mode existed have no date: they're grouped under **Before the story**, in a warm gray.
+A **day by day** panel lists the days with their colors. Click a day: everything drawn before it appears at once, then that day's lines are redrawn one by one, in the order you drew them, and each area fills in as it closes. The drawing then stays as it was at the end of that day; click the day again to see everything. ▶ replays the whole drawing from the first line, and the panel highlights the day being replayed. The button next to ▶ sets the speed (×1, ×2, ×4, ×8); it can be changed during a replay and is remembered with the settings. Lines drawn before story mode existed have no date: they're grouped under **Before the story**, in a warm gray.
 
 SVG and PNG exports use the story colors while story mode is on.
 
@@ -82,6 +82,7 @@ Stroke and grid styles are also applied to SVG and PNG exports. Settings are sto
 - Lines are stored as **unit segments** between neighboring grid corners, including diagonals.
 - Each grid cell is divided into **4 triangles** by its two diagonals. Fill is a flood fill over these triangles, and drawn lines act as walls. If the fill reaches beyond the drawing's bounds, the area isn't closed.
 - Each line's day is stored with the drawing (`days`: day → list of segments), in local time.
+- Drawing order needs no extra data: segments are kept and saved in the order they were drawn, so a segment's number is its position in `edges`.
 - In the SVG, the drawing data is in `<metadata id="squarey-data">` as JSON.
 
 ---
@@ -117,7 +118,7 @@ Ogni linea si ricorda il giorno in cui l'hai disegnata. Il pulsante **Storia** (
 - le linee prendono una tonalità più scura del colore del loro giorno;
 - i colori che hai dato tu sono nascosti finché la modalità storia è attiva, e tornano quando la spegni.
 
-Il pannello **giorno per giorno** elenca i giorni con i loro colori. Clicca un giorno per vedere il disegno com'era alla fine di quel giorno, e cliccalo di nuovo per vedere tutto. ▶ riproduce i giorni uno dopo l'altro. Le linee disegnate prima che esistesse la modalità storia non hanno una data: sono raccolte in **Prima della storia**, in un grigio caldo.
+Il pannello **giorno per giorno** elenca i giorni con i loro colori. Clicca un giorno: tutto quello che c'era prima compare subito, poi le linee di quel giorno vengono ridisegnate una alla volta, nell'ordine in cui le hai tracciate, e ogni zona si colora quando si chiude. Alla fine il disegno resta com'era a fine giornata; clicca di nuovo il giorno per vedere tutto. ▶ riproduce tutto il disegno dalla prima linea, e il pannello evidenzia il giorno in riproduzione. Il pulsante accanto a ▶ sceglie la velocità (×1, ×2, ×4, ×8); si può cambiare anche durante la riproduzione e viene ricordata con le impostazioni. Le linee disegnate prima che esistesse la modalità storia non hanno una data: sono raccolte in **Prima della storia**, in un grigio caldo.
 
 Con la modalità storia attiva, anche l'esportazione in SVG e PNG usa i colori della storia.
 
@@ -160,4 +161,5 @@ Tratto e quadretti valgono anche per l'esportazione in SVG e PNG. Le impostazion
 - Le linee sono salvate come **segmenti unitari** tra incroci vicini, diagonali comprese.
 - Ogni quadretto è diviso in **4 triangoli** dalle sue due diagonali. Colorare è un riempimento a macchia su questi triangoli, e le linee disegnate fanno da muro. Se il riempimento esce dai bordi del disegno, la zona non è chiusa.
 - Il giorno di ogni linea è salvato insieme al disegno (`days`: giorno → elenco di segmenti), in ora locale.
+- L'ordine di disegno non richiede dati in più: i segmenti sono tenuti e salvati nell'ordine in cui li hai disegnati, quindi il numero di un segmento è la sua posizione in `edges`.
 - Nell'SVG i dati del disegno si trovano in `<metadata id="squarey-data">`, in formato JSON.

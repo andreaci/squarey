@@ -110,7 +110,9 @@
 
   #story{top:76px;right:14px;flex-direction:column;align-items:stretch;gap:2px;padding:10px;width:208px;
     overflow-y:auto;animation:pop .16s ease-out;transform-origin:top right}
-  .story-head{display:flex;align-items:center;justify-content:space-between;padding:0 2px 4px 6px}
+  .story-head{display:flex;align-items:center;justify-content:space-between;gap:6px;padding:0 2px 4px 6px}
+  .story-ctl{display:flex;gap:4px;flex:none}
+  .btn.mini.speed{min-width:36px;font-size:12px;font-weight:800;color:var(--text-soft)}
   .btn.mini{height:30px;min-width:30px;padding:0;border-radius:10px;background:var(--hover)}
   .btn.mini svg{width:15px;height:15px;fill:currentColor;stroke-width:1.6}
   .day{display:flex;align-items:center;gap:9px;padding:6px 8px;border-radius:11px;font-size:13.5px;font-weight:700;
@@ -210,7 +212,7 @@
 </div>
 
 <div class="panel" id="story" hidden>
-  <div class="story-head"><span class="set-title" data-t="story.title"></span><button class="btn mini" id="bPlay"></button></div>
+  <div class="story-head"><span class="set-title" data-t="story.title"></span><span class="story-ctl"><button class="btn mini speed" id="bSpeed" data-tt="story.speed"></button><button class="btn mini" id="bPlay"></button></span></div>
   <div id="storyList"></div>
 </div>
 
@@ -257,7 +259,7 @@
   // impostazioni salvate in un cookie (1 anno)
   const COOKIE = 'squarey_settings';
   const BROWSER_LANG = /^it\b/i.test(navigator.language || '') ? 'it' : 'en';
-  const DEFAULT_SETTINGS = { bg: '#f7f3ea', stopOnClose: true, stroke: 'pen', grid: 'solid', lang: BROWSER_LANG };
+  const DEFAULT_SETTINGS = { bg: '#f7f3ea', stopOnClose: true, stroke: 'pen', grid: 'solid', lang: BROWSER_LANG, storySpeed: 1 };
   const settings = { ...DEFAULT_SETTINGS };
   function readCookie() {
     const m = document.cookie.match(new RegExp('(?:^|; )' + COOKIE + '=([^;]*)'));
@@ -270,6 +272,7 @@
     if (!['solid','dashed','dotted','dashdot','dots','none'].includes(settings.grid)) settings.grid = 'solid';
     settings.stopOnClose = settings.stopOnClose !== false;
     if (!(settings.lang in I18N)) settings.lang = BROWSER_LANG;
+    if (![1, 2, 4, 8].includes(settings.storySpeed)) settings.storySpeed = 1;
   }
 
   // ---------- traduzioni / translations ----------
@@ -314,7 +317,7 @@
       'lbl.story': 'Storia', 'title.story': 'Modalità storia: i poligoni prendono il colore del giorno in cui li hai disegnati (S)',
       'story.title': 'Giorno per giorno', 'story.undated': 'Prima della storia', 'story.today': 'Oggi',
       'story.empty': 'Disegna qualcosa: ogni giorno avrà il suo colore.',
-      'story.play': 'Riproduci giorno per giorno', 'story.pause': 'Ferma', 'story.pick': 'Mostra il disegno fino a questo giorno (clicca di nuovo per vedere tutto)',
+      'story.play': 'Riproduci tutto il disegno, linea per linea', 'story.pause': 'Ferma', 'story.speed': 'Velocità della riproduzione', 'story.pick': 'Ridisegna le linee di questo giorno nell’ordine in cui le hai tracciate (clicca di nuovo per vedere tutto)',
       'story.on': 'Modalità storia 📖', 'story.off': 'Torna ai tuoi colori 🎨'
     },
     en: {
@@ -357,7 +360,7 @@
       'lbl.story': 'Story', 'title.story': 'Story mode: polygons take the color of the day you drew them (S)',
       'story.title': 'Day by day', 'story.undated': 'Before the story', 'story.today': 'Today',
       'story.empty': 'Draw something: every day gets its own color.',
-      'story.play': 'Replay day by day', 'story.pause': 'Stop', 'story.pick': 'Show the drawing up to this day (click again to see everything)',
+      'story.play': 'Replay the whole drawing, line by line', 'story.pause': 'Stop', 'story.speed': 'Replay speed', 'story.pick': 'Redraw this day’s lines in the order you drew them (click again to see everything)',
       'story.on': 'Story mode 📖', 'story.off': 'Back to your colors 🎨'
     }
   };
@@ -401,7 +404,7 @@
   let fills = new Map();
   // days: segmento -> giorno in cui è stato disegnato ("AAAA-MM-GG", ora locale); i disegni vecchi non ce l'hanno
   let days = new Map();
-  let story = false, storyUpTo = null, storyCache = null, playTimer = 0;
+  let story = false, storyLimit = null, storyDay = null, storyCache = null, playTimer = 0;
   function today() {
     const d = new Date(), p = n => String(n).padStart(2, '0');
     return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
@@ -570,7 +573,7 @@
   function persist() { clearTimeout(saveTimer); saveTimer = setTimeout(saveCurrent, 300); }
   function changed() {
     clearTimeout(saveTimer); storyCache = null;
-    if (story) { stopPlay(); storyUpTo = null; renderStory(); }
+    if (story) { stopPlay(); storyLimit = null; storyDay = null; renderStory(); }
     saveCurrent(); updateUI(); draw();
   }
   window.addEventListener('pagehide', saveCurrent);
@@ -728,12 +731,13 @@
     return PALETTE[STORY_ORDER[i % STORY_ORDER.length]];
   }
   const storyInk = (d, all) => d ? mix(storyColor(d, all), LINE, .5) : LINE;
-  function storyLayers(upTo) {
-    const key = upTo ?? '*';
+  // limit: quanti segmenti mostrare, nell'ordine in cui sono stati disegnati (null = tutti)
+  function storyLayers(limit) {
+    const key = limit ?? '*';
     if (storyCache && storyCache.key === key) return storyCache;
     const all = storyDays(), dayOf = k => days.get(k) || '';
     const E = new Set();
-    for (const k of edges) if (upTo == null || dayOf(k) <= upTo) E.add(k);
+    for (const k of edges) { if (limit != null && E.size >= limit) break; E.add(k); }
     const F = new Map(), byDay = new Map();
     for (const k of E) { const d = dayOf(k); let g = byDay.get(d); if (!g) byDay.set(d, g = new Set()); g.add(k); }
     let b = null;
@@ -802,7 +806,7 @@
   }
 
   function render(c, w, h, v, opt) {
-    const ST = opt.story ? storyLayers(storyUpTo) : null;
+    const ST = opt.story ? storyLayers(storyLimit) : null;
     const E = opt.edges || edges, F = ST ? ST.fills : (opt.fills || fills);
     c.fillStyle = PAPER; c.fillRect(0, 0, w, h);
     if (opt.grid) drawGrid(c, w, h, v, opt.gridStyle || settings.grid);
@@ -1279,7 +1283,7 @@
         out.push(`<path d="${d}" fill="none" stroke="${gc}" stroke-width="1"${dash}/>`);
       }
     }
-    const ST = story ? storyLayers(storyUpTo) : null;
+    const ST = story ? storyLayers(storyLimit) : null;
     const groups = new Map();
     for (const [k, c] of (ST ? ST.fills : fills)) { let g = groups.get(c); if (!g) groups.set(c, g = []); g.push(k); }
     for (const [c, keys] of groups) {
@@ -1356,18 +1360,19 @@
     bPlay.innerHTML = playTimer ? STOP_SVG : PLAY_SVG;
     bPlay.title = tr(playTimer ? 'story.pause' : 'story.play');
     bPlay.disabled = !all.length;
+    bSpeed.textContent = '×' + settings.storySpeed;
     if (!all.length) {
       const e = document.createElement('div'); e.className = 'story-empty'; e.textContent = tr('story.empty');
       list.appendChild(e); return;
     }
     for (const d of all) {
       const b = document.createElement('button');
-      b.className = 'day' + (storyUpTo === d ? ' pin' : '') + (storyUpTo != null && d > storyUpTo ? ' later' : '');
+      b.className = 'day' + (storyDay === d ? ' pin' : '') + (storyDay != null && d > storyDay ? ' later' : '');
       b.title = tr('story.pick');
       const dot = document.createElement('span'); dot.className = 'dot';
       dot.style.background = storyColor(d, all); dot.style.borderColor = storyInk(d, all);
       b.append(dot, fmtDay(d));
-      b.onclick = () => { stopPlay(); storyUpTo = storyUpTo === d ? null : d; renderStory(); draw(); };
+      b.onclick = () => pickDay(d);
       list.appendChild(b);
     }
   }
@@ -1379,25 +1384,57 @@
   }
   window.addEventListener('resize', placeStory);
   function stopPlay() { if (playTimer) { clearTimeout(playTimer); playTimer = 0; } }
+  function showAll() { stopPlay(); storyLimit = null; storyDay = null; renderStory(); draw(); }
   function setStory(on) {
-    story = on; stopPlay(); storyUpTo = null;
-    renderStory(); draw();
+    story = on; showAll();
     toast(tr(on ? 'story.on' : 'story.off'));
   }
-  // riproduzione: mostra il disegno com'era alla fine di ogni giorno, uno dopo l'altro
-  function playStory() {
-    if (playTimer) { stopPlay(); storyUpTo = null; renderStory(); draw(); return; }
-    const all = storyDays(); if (!all.length) return;
-    let i = 0;
+  // l'ordine di disegno è l'ordine dei segmenti (il numero di ciascuno è la sua posizione in "edges",
+  // che viene salvato in quest'ordine): si rivelano uno alla volta, da "from" a "to"
+  // velocità: x1 x2 x4 x8 (salvata nelle impostazioni). Sotto i 16 ms a segmento se ne mostrano più per volta.
+  const SPEEDS = [1, 2, 4, 8];
+  function animate(from, to, totalMs, onDone) {
+    stopPlay();
+    const order = [...edges], dayOf = k => days.get(k) || '';
+    storyLimit = from;
     const step = () => {
-      if (i < all.length) { storyUpTo = all[i++]; playTimer = setTimeout(step, 1100); }
-      else { storyUpTo = null; playTimer = 0; }
-      renderStory(); draw();
+      const per = clamp(totalMs / Math.max(1, to - from), 6, 70) / settings.storySpeed;
+      const inc = per < 16 ? Math.ceil(16 / per) : 1;
+      storyLimit = Math.min(to, storyLimit + inc);
+      const d = dayOf(order[storyLimit - 1]);
+      if (d !== storyDay) { storyDay = d; renderStory(); }
+      draw();
+      if (storyLimit < to) playTimer = setTimeout(step, Math.max(16, per));
+      else { playTimer = 0; onDone(); }
     };
-    playTimer = -1; step();
+    playTimer = setTimeout(step, 0);
+    renderStory(); draw();
+  }
+  // un giorno: tutto quello che c'era prima subito, poi le linee di quel giorno nell'ordine in cui sono state disegnate
+  function pickDay(d) {
+    if (storyDay === d && !playTimer) { showAll(); return; }
+    const order = [...edges], dayOf = k => days.get(k) || '';
+    const first = order.findIndex(k => dayOf(k) === d);
+    let last = first;
+    for (let i = order.length - 1; i >= first; i--) if (dayOf(order[i]) === d) { last = i; break; }
+    if (first < 0) return;
+    storyDay = d;
+    animate(first, last + 1, 1200, () => { storyDay = d; renderStory(); });
+  }
+  // riproduzione: tutto il disegno, dall'inizio, segmento per segmento
+  function playStory() {
+    if (playTimer) { showAll(); return; }
+    if (!edges.size) return;
+    storyDay = null;
+    animate(0, edges.size, 3500, () => { storyLimit = null; storyDay = null; renderStory(); draw(); });
   }
   bStory.onclick = () => setStory(!story);
   bPlay.onclick = playStory;
+  const bSpeed = document.getElementById('bSpeed');
+  bSpeed.onclick = () => {
+    settings.storySpeed = SPEEDS[(SPEEDS.indexOf(settings.storySpeed) + 1) % SPEEDS.length];
+    saveSettings(); bSpeed.textContent = '×' + settings.storySpeed;
+  };
 
   // ---------- avvio ----------
   window.addEventListener('resize', resize);
