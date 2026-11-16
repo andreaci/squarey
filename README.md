@@ -31,6 +31,18 @@ squarey is a single static file, `index.html`, with no build step and no depende
 
 There are ten pastels: peach, apricot, butter, sage, mint, sky, periwinkle, lavender, blush and latte. The rainbow circle opens a custom color picker, and the crossed-out circle removes a fill.
 
+### Story mode 📖
+
+Every line remembers the day it was drawn. The **Story** button (or `S`) recolors the drawing by day:
+
+- each closed area takes the pastel of the day it was closed, meaning the most recent day among the lines around it;
+- lines take a darker shade of their own day's color;
+- your own fill colors are hidden while story mode is on, and come back when you turn it off.
+
+A **day by day** panel lists the days with their colors. Click a day to see the drawing as it was at the end of that day, and click it again to see everything. ▶ replays the days one after the other. Lines drawn before story mode existed have no date: they're grouped under **Before the story**, in a warm gray.
+
+SVG and PNG exports use the story colors while story mode is on.
+
 ### Saving
 
 - **Autosave:** the drawing in progress is saved in the browser (`localStorage`, item `squarey:current drawing`) after every change. When you reopen the page, it comes back as you left it, with the same zoom and position.
@@ -58,6 +70,7 @@ Stroke and grid styles are also applied to SVG and PNG exports. Settings are sto
 | `B` / `F` | Fill |
 | `E` | Eraser |
 | `H` | Move |
+| `S` | Story mode on / off |
 | `Space` (hold) | Temporary move |
 | `Esc` | Stop the line / close the panel |
 | `+` `−` `0` | Zoom in, zoom out, fit drawing |
@@ -68,6 +81,7 @@ Stroke and grid styles are also applied to SVG and PNG exports. Settings are sto
 
 - Lines are stored as **unit segments** between neighboring grid corners, including diagonals.
 - Each grid cell is divided into **4 triangles** by its two diagonals. Fill is a flood fill over these triangles, and drawn lines act as walls. If the fill reaches beyond the drawing's bounds, the area isn't closed.
+- Each line's day is stored with the drawing (`days`: day → list of segments), in local time.
 - In the SVG, the drawing data is in `<metadata id="squarey-data">` as JSON.
 
 ---
@@ -94,6 +108,18 @@ squarey è un unico file statico, `index.html`, senza build e senza dipendenze. 
 ### Colori
 
 Ci sono dieci pastelli: pesca, albicocca, burro, salvia, menta, cielo, pervinca, lavanda, rosa cipria e latte e caffè. Il cerchio arcobaleno apre un selettore di colore libero e il cerchio barrato toglie il colore.
+
+### Modalità storia 📖
+
+Ogni linea si ricorda il giorno in cui l'hai disegnata. Il pulsante **Storia** (o `S`) ricolora il disegno per giorno:
+
+- ogni zona chiusa prende il pastello del giorno in cui si è chiusa, cioè il giorno più recente tra le linee che la circondano;
+- le linee prendono una tonalità più scura del colore del loro giorno;
+- i colori che hai dato tu sono nascosti finché la modalità storia è attiva, e tornano quando la spegni.
+
+Il pannello **giorno per giorno** elenca i giorni con i loro colori. Clicca un giorno per vedere il disegno com'era alla fine di quel giorno, e cliccalo di nuovo per vedere tutto. ▶ riproduce i giorni uno dopo l'altro. Le linee disegnate prima che esistesse la modalità storia non hanno una data: sono raccolte in **Prima della storia**, in un grigio caldo.
+
+Con la modalità storia attiva, anche l'esportazione in SVG e PNG usa i colori della storia.
 
 ### Salvare
 
@@ -122,6 +148,7 @@ Tratto e quadretti valgono anche per l'esportazione in SVG e PNG. Le impostazion
 | `B` / `F` | Colora |
 | `E` | Gomma |
 | `H` | Sposta |
+| `S` | Attiva / disattiva la modalità storia |
 | `Spazio` (tenuto premuto) | Sposta temporaneo |
 | `Esc` | Stacca la linea / chiude il pannello |
 | `+` `−` `0` | Ingrandisci, riduci, inquadra |
@@ -132,4 +159,5 @@ Tratto e quadretti valgono anche per l'esportazione in SVG e PNG. Le impostazion
 
 - Le linee sono salvate come **segmenti unitari** tra incroci vicini, diagonali comprese.
 - Ogni quadretto è diviso in **4 triangoli** dalle sue due diagonali. Colorare è un riempimento a macchia su questi triangoli, e le linee disegnate fanno da muro. Se il riempimento esce dai bordi del disegno, la zona non è chiusa.
+- Il giorno di ogni linea è salvato insieme al disegno (`days`: giorno → elenco di segmenti), in ora locale.
 - Nell'SVG i dati del disegno si trovano in `<metadata id="squarey-data">`, in formato JSON.

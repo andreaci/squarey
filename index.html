@@ -45,7 +45,9 @@
   #brand{top:14px;left:14px;padding:8px 14px 8px 10px;gap:10px;max-width:min(430px,calc(100vw - 28px))}
   #brand .logo{width:30px;height:30px;flex:none}
   #brand b{font-weight:800;font-size:17px;letter-spacing:.2px;color:#5a5047}
-  #hint{font-size:12.5px;line-height:1.35;color:var(--text-soft);font-weight:600}
+  #hint{display:none;font-size:12.5px;line-height:1.35;color:var(--text-soft);font-weight:600}
+  #brand{cursor:help}
+  #brand:hover #hint{display:block}
 
   #file{top:14px;right:14px}
   .check{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:700;padding:0 8px;cursor:pointer;color:var(--text-soft)}
@@ -65,7 +67,7 @@
   .sw.custom input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;border:0;padding:0}
 
   [hidden]{display:none!important}
-  .pop{top:72px;right:14px;flex-direction:column;align-items:stretch;gap:10px;padding:14px;width:290px;
+  .pop{z-index:2;top:72px;right:14px;flex-direction:column;align-items:stretch;gap:10px;padding:14px;width:290px;
     transform-origin:top right;animation:pop .16s ease-out;max-height:calc(100vh - 160px);overflow-y:auto}
   .save-row{display:flex;gap:6px;margin:0}
   .save-row input{flex:1;min-width:0;height:38px;border-radius:12px;border:1px solid var(--panel-border);background:#fff;
@@ -106,6 +108,18 @@
   #bSettings.on svg{transform:rotate(45deg)}
   #bSettings svg{transition:transform .3s}
 
+  #story{top:76px;right:14px;flex-direction:column;align-items:stretch;gap:2px;padding:10px;width:208px;
+    overflow-y:auto;animation:pop .16s ease-out;transform-origin:top right}
+  .story-head{display:flex;align-items:center;justify-content:space-between;padding:0 2px 4px 6px}
+  .btn.mini{height:30px;min-width:30px;padding:0;border-radius:10px;background:var(--hover)}
+  .btn.mini svg{width:15px;height:15px;fill:currentColor;stroke-width:1.6}
+  .day{display:flex;align-items:center;gap:9px;padding:6px 8px;border-radius:11px;font-size:13.5px;font-weight:700;
+    text-align:left;color:var(--text);transition:background .15s,opacity .2s}
+  .day:hover{background:var(--hover)}
+  .day.pin{background:var(--active)}
+  .day.later{opacity:.38}
+  .day .dot{width:18px;height:18px;flex:none;border-radius:6px;border:2px solid}
+  .story-empty{font-size:13px;font-weight:600;color:var(--text-soft);padding:4px 6px 2px;line-height:1.35}
   #zoom{bottom:16px;right:14px}
   #zlabel{font-size:13px;font-weight:800;min-width:46px;text-align:center;color:var(--text-soft)}
 
@@ -118,6 +132,7 @@
     #hint{display:none}
     #file .lbl{display:none}
     #zoom{bottom:76px}
+    #story{width:180px}
     #toast{bottom:136px}
   }
 </style>
@@ -153,6 +168,9 @@
   </button>
   <label class="check" data-tt="title.gridExport"><input type="checkbox" id="cGrid" checked><span class="lbl" data-t="lbl.gridExport"></span></label>
   <div class="sep"></div>
+  <button class="btn" id="bStory" data-tt="title.story">
+    <svg viewBox="0 0 24 24"><path d="M12 6.5c-2.3-1.6-5-1.9-7.5-1v13c2.5-.9 5.2-.6 7.5 1 2.3-1.6 5-1.9 7.5-1v-13c-2.5-.9-5.2-.6-7.5 1z"/><path d="M12 6.5v13"/></svg><span class="lbl" data-t="lbl.story"></span>
+  </button>
   <button class="btn" id="bSettings" data-tt="title.settings">
     <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1.08-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1.08 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
   </button>
@@ -189,6 +207,11 @@
   <button class="btn reset" id="bResetSettings" data-tt="set.resetTitle">
     <svg viewBox="0 0 24 24"><path d="M4.5 12a7.5 7.5 0 1 0 2.2-5.3"/><path d="M4.5 4.5v4h4"/></svg><span data-t="set.reset"></span>
   </button>
+</div>
+
+<div class="panel" id="story" hidden>
+  <div class="story-head"><span class="set-title" data-t="story.title"></span><button class="btn mini" id="bPlay"></button></div>
+  <div id="storyList"></div>
 </div>
 
 <div class="panel" id="tools">
@@ -287,7 +310,12 @@
       'toast.drawFirst': 'Disegna qualcosa prima 🙂', 'toast.svgSaved': 'Salvato! Puoi riaprirlo con “Apri”',
       'toast.pngDone': 'PNG esportato ✨', 'toast.fileLoaded': 'Bentornato al tuo disegno ☕',
       'toast.fileBad': 'Non riesco a leggere questo file (serve un SVG salvato da squarey)',
-      'confirm.clear': 'Cancellare tutto il disegno? (puoi sempre annullare con Ctrl+Z)'
+      'confirm.clear': 'Cancellare tutto il disegno? (puoi sempre annullare con Ctrl+Z)',
+      'lbl.story': 'Storia', 'title.story': 'Modalità storia: i poligoni prendono il colore del giorno in cui li hai disegnati (S)',
+      'story.title': 'Giorno per giorno', 'story.undated': 'Prima della storia', 'story.today': 'Oggi',
+      'story.empty': 'Disegna qualcosa: ogni giorno avrà il suo colore.',
+      'story.play': 'Riproduci giorno per giorno', 'story.pause': 'Ferma', 'story.pick': 'Mostra il disegno fino a questo giorno (clicca di nuovo per vedere tutto)',
+      'story.on': 'Modalità storia 📖', 'story.off': 'Torna ai tuoi colori 🎨'
     },
     en: {
       locale: 'en-GB', langName: 'English',
@@ -325,7 +353,12 @@
       'toast.drawFirst': 'Draw something first 🙂', 'toast.svgSaved': 'Saved! You can reopen it with “Open”',
       'toast.pngDone': 'PNG exported ✨', 'toast.fileLoaded': 'Welcome back to your drawing ☕',
       'toast.fileBad': 'Can’t read this file (it needs to be an SVG saved by squarey)',
-      'confirm.clear': 'Clear the whole drawing? (you can always undo with Ctrl+Z)'
+      'confirm.clear': 'Clear the whole drawing? (you can always undo with Ctrl+Z)',
+      'lbl.story': 'Story', 'title.story': 'Story mode: polygons take the color of the day you drew them (S)',
+      'story.title': 'Day by day', 'story.undated': 'Before the story', 'story.today': 'Today',
+      'story.empty': 'Draw something: every day gets its own color.',
+      'story.play': 'Replay day by day', 'story.pause': 'Stop', 'story.pick': 'Show the drawing up to this day (click again to see everything)',
+      'story.on': 'Story mode 📖', 'story.off': 'Back to your colors 🎨'
     }
   };
   function tr(key, ...args) {
@@ -366,6 +399,13 @@
   // fills: triangoli (ogni quadretto è diviso in 4 dalle diagonali: 0 sopra, 1 destra, 2 sotto, 3 sinistra) -> colore
   let edges = new Set();
   let fills = new Map();
+  // days: segmento -> giorno in cui è stato disegnato ("AAAA-MM-GG", ora locale); i disegni vecchi non ce l'hanno
+  let days = new Map();
+  let story = false, storyUpTo = null, storyCache = null, playTimer = 0;
+  function today() {
+    const d = new Date(), p = n => String(n).padStart(2, '0');
+    return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
+  }
 
   let tool = 'draw';
   let color = PALETTE[0];
@@ -386,7 +426,7 @@
   function ekey(x1, y1, x2, y2) {
     return (x1 < x2 || (x1 === x2 && y1 < y2)) ? `${x1},${y1},${x2},${y2}` : `${x2},${y2},${x1},${y1}`;
   }
-  const hasE = (x1, y1, x2, y2) => edges.has(ekey(x1, y1, x2, y2));
+  const hasE = (x1, y1, x2, y2, E = edges) => E.has(ekey(x1, y1, x2, y2));
 
   const DIRS = [[1,0],[1,1],[0,1],[-1,1],[-1,0],[-1,-1],[0,-1],[1,-1]];
   const snapPoint = w => ({ x: Math.round(w.x), y: Math.round(w.y) });
@@ -416,17 +456,23 @@
     const d1 = fy < fx, d2 = fy < 1 - fx;
     return [x, y, d1 ? (d2 ? 0 : 1) : (d2 ? 3 : 2)];
   }
-  function neigh(x, y, s) {
-    const bs = hasE(x, y, x + 1, y + 1);      // diagonale "\"
-    const fs = hasE(x, y + 1, x + 1, y);      // diagonale "/"
+  function neigh(x, y, s, E = edges) {
+    const bs = hasE(x, y, x + 1, y + 1, E);      // diagonale "\"
+    const fs = hasE(x, y + 1, x + 1, y, E);      // diagonale "/"
     const r = [];
     switch (s) {
-      case 0: if (!fs) r.push([x, y, 1]); if (!bs) r.push([x, y, 3]); if (!hasE(x, y, x + 1, y)) r.push([x, y - 1, 2]); break;
-      case 1: if (!fs) r.push([x, y, 0]); if (!bs) r.push([x, y, 2]); if (!hasE(x + 1, y, x + 1, y + 1)) r.push([x + 1, y, 3]); break;
-      case 2: if (!bs) r.push([x, y, 1]); if (!fs) r.push([x, y, 3]); if (!hasE(x, y + 1, x + 1, y + 1)) r.push([x, y + 1, 0]); break;
-      case 3: if (!fs) r.push([x, y, 2]); if (!bs) r.push([x, y, 0]); if (!hasE(x, y, x, y + 1)) r.push([x - 1, y, 1]); break;
+      case 0: if (!fs) r.push([x, y, 1]); if (!bs) r.push([x, y, 3]); if (!hasE(x, y, x + 1, y, E)) r.push([x, y - 1, 2]); break;
+      case 1: if (!fs) r.push([x, y, 0]); if (!bs) r.push([x, y, 2]); if (!hasE(x + 1, y, x + 1, y + 1, E)) r.push([x + 1, y, 3]); break;
+      case 2: if (!bs) r.push([x, y, 1]); if (!fs) r.push([x, y, 3]); if (!hasE(x, y + 1, x + 1, y + 1, E)) r.push([x, y + 1, 0]); break;
+      case 3: if (!fs) r.push([x, y, 2]); if (!bs) r.push([x, y, 0]); if (!hasE(x, y, x, y + 1, E)) r.push([x - 1, y, 1]); break;
     }
     return r;
+  }
+  // i segmenti che toccano un triangolo: il lato del quadretto e le due diagonali
+  function triEdges(x, y, s) {
+    const side = s === 0 ? ekey(x, y, x + 1, y) : s === 1 ? ekey(x + 1, y, x + 1, y + 1)
+               : s === 2 ? ekey(x, y + 1, x + 1, y + 1) : ekey(x, y, x, y + 1);
+    return [side, ekey(x, y, x + 1, y + 1), ekey(x, y + 1, x + 1, y)];
   }
   function edgeBounds() {
     if (!edges.size) return null;
@@ -488,9 +534,11 @@
   function serialize() {
     const byColor = {};
     for (const [k, c] of fills) (byColor[c] ||= []).push(k);
-    return { app: 'squarey', v: 1, edges: [...edges], fills: byColor };
+    const byDay = {};
+    for (const [k, d] of days) if (edges.has(k)) (byDay[d] ||= []).push(k);
+    return { app: 'squarey', v: 1, edges: [...edges], fills: byColor, days: byDay };
   }
-  const EK = /^-?\d+,-?\d+,-?\d+,-?\d+$/, TK = /^-?\d+,-?\d+,[0-3]$/, CK = /^#[0-9a-f]{3,8}$/i;
+  const EK = /^-?\d+,-?\d+,-?\d+,-?\d+$/, TK = /^-?\d+,-?\d+,[0-3]$/, CK = /^#[0-9a-f]{3,8}$/i, DK = /^\d{4}-\d{2}-\d{2}$/;
   function deserialize(o) {
     if (!o || !Array.isArray(o.edges)) throw new Error('formato non valido');
     const e = new Set(), f = new Map();
@@ -500,7 +548,10 @@
     }
     for (const [c, arr] of Object.entries(o.fills || {}))
       if (CK.test(c) && Array.isArray(arr)) for (const k of arr) if (typeof k === 'string' && TK.test(k)) f.set(k, c);
-    edges = e; fills = f;
+    const dy = new Map();
+    for (const [d, arr] of Object.entries(o.days || {}))
+      if (DK.test(d) && Array.isArray(arr)) for (const k of arr) if (e.has(k)) dy.set(k, d);
+    edges = e; fills = f; days = dy; storyCache = null;
   }
   const snapshot = () => JSON.stringify(serialize());
   const restore = str => deserialize(JSON.parse(str));
@@ -517,7 +568,11 @@
   // per zoom/spostamenti basta salvare ogni tanto; per le modifiche si salva subito
   let saveTimer = 0;
   function persist() { clearTimeout(saveTimer); saveTimer = setTimeout(saveCurrent, 300); }
-  function changed() { clearTimeout(saveTimer); saveCurrent(); updateUI(); draw(); }
+  function changed() {
+    clearTimeout(saveTimer); storyCache = null;
+    if (story) { stopPlay(); storyUpTo = null; renderStory(); }
+    saveCurrent(); updateUI(); draw();
+  }
   window.addEventListener('pagehide', saveCurrent);
 
   // ---------- azioni ----------
@@ -527,7 +582,7 @@
     const snap = snapshot(), added = [];
     for (let i = 0; i < n; i++) {
       const k = ekey(a.x + sx * i, a.y + sy * i, a.x + sx * (i + 1), a.y + sy * (i + 1));
-      if (!edges.has(k)) { edges.add(k); added.push(k); }
+      if (!edges.has(k)) { edges.add(k); days.set(k, today()); added.push(k); }
     }
     if (added.length) { pushHistory(snap); changed(); }
     return added;
@@ -561,7 +616,7 @@
   }
   function eraseAt(w, isDown) {
     const k = edgeNear(w);
-    if (k) { edges.delete(k); eraseChanged = true; return; }
+    if (k) { edges.delete(k); days.delete(k); storyCache = null; eraseChanged = true; return; }
     if (!isDown) return;
     const t = triAt(w), tk = t.join(','), c = fills.get(tk);
     if (!c) return;
@@ -621,7 +676,7 @@
     return ((h >>> 0) / 4294967295) * 2 - 1;
   }
   function edgeList(set) { return [...set].map(k => { const n = k.split(',').map(Number); n.k = k; return n; }); }
-  function strokeOps(list, st, s) {
+  function strokeOps(list, st, s, ink) {
     const w = lineWidthFor(s);
     if (!list.length) return [];
     if (st === 'pencil') {
@@ -635,7 +690,7 @@
           path.push(['M', a - ux * o1 + j * hash(e.k, seed), b - uy * o1 + j * hash(e.k, seed + 1)]);
           path.push(['L', c + ux * o2 + j * hash(e.k, seed + 2), d + uy * o2 + j * hash(e.k, seed + 3)]);
         }
-        ops.push({ type: 'stroke', color: '#857d76', alpha, width: Math.max(1, w * .5), cap: 'round', path });
+        ops.push({ type: 'stroke', color: ink || '#857d76', alpha, width: Math.max(1, w * .5), cap: 'round', path });
       }
       return ops;
     }
@@ -649,12 +704,68 @@
                   ['L', c - nx * e0, d - ny * e0], ['Q', mx - nx * q, my - ny * q, a - nx * e0, b - ny * e0], ['Z']);
         dots.push(['O', a, b, e0], ['O', c, d, e0]);
       }
-      return [{ type: 'fill', color: LINE, alpha: 1, path: lens }, { type: 'fill', color: LINE, alpha: 1, path: dots }];
+      return [{ type: 'fill', color: ink || LINE, alpha: 1, path: lens }, { type: 'fill', color: ink || LINE, alpha: 1, path: dots }];
     }
     const path = [];
     for (const [a, b, c, d] of list) path.push(['M', a, b], ['L', c, d]);
-    if (st === 'marker') return [{ type: 'stroke', color: '#8c837b', alpha: .78, width: w * 1.8, cap: 'round', path }];
-    return [{ type: 'stroke', color: LINE, alpha: 1, width: w, cap: 'round', path }];
+    if (st === 'marker') return [{ type: 'stroke', color: ink || '#8c837b', alpha: .78, width: w * 1.8, cap: 'round', path }];
+    return [{ type: 'stroke', color: ink || LINE, alpha: 1, width: w, cap: 'round', path }];
+  }
+
+  // ----- modalità storia -----
+  // ogni zona chiusa prende il colore del giorno in cui è stata chiusa (il giorno più recente
+  // tra le linee che la toccano); anche le linee prendono una versione più scura del colore del loro giorno
+  const STORY_ORDER = [0, 5, 3, 7, 2, 6, 4, 8, 1, 9];   // pastelli in un ordine che alterna caldi e freddi
+  const UNDATED_FILL = '#e6e1d9';
+  function storyDays() {
+    const s = new Set();
+    for (const k of edges) s.add(days.get(k) || '');
+    return [...s].sort();                                  // '' (senza data) viene per primo
+  }
+  function storyColor(d, all) {
+    if (!d) return UNDATED_FILL;
+    const i = all.filter(Boolean).indexOf(d);
+    return PALETTE[STORY_ORDER[i % STORY_ORDER.length]];
+  }
+  const storyInk = (d, all) => d ? mix(storyColor(d, all), LINE, .5) : LINE;
+  function storyLayers(upTo) {
+    const key = upTo ?? '*';
+    if (storyCache && storyCache.key === key) return storyCache;
+    const all = storyDays(), dayOf = k => days.get(k) || '';
+    const E = new Set();
+    for (const k of edges) if (upTo == null || dayOf(k) <= upTo) E.add(k);
+    const F = new Map(), byDay = new Map();
+    for (const k of E) { const d = dayOf(k); let g = byDay.get(d); if (!g) byDay.set(d, g = new Set()); g.add(k); }
+    let b = null;
+    for (const k of E) {
+      const [x1, y1, x2, y2] = k.split(',').map(Number);
+      if (!b) b = { minX: x1, minY: y1, maxX: x1, maxY: y1 };
+      b.minX = Math.min(b.minX, x1, x2); b.maxX = Math.max(b.maxX, x1, x2);
+      b.minY = Math.min(b.minY, y1, y2); b.maxY = Math.max(b.maxY, y1, y2);
+    }
+    if (b) {
+      const seen = new Set();
+      for (let x = b.minX; x < b.maxX; x++) for (let y = b.minY; y < b.maxY; y++) for (let s = 0; s < 4; s++) {
+        const k0 = `${x},${y},${s}`;
+        if (seen.has(k0)) continue;
+        seen.add(k0);
+        const q = [[x, y, s]], tris = [];
+        let open = false, day = null;
+        while (q.length) {
+          const t = q.pop();
+          if (t[0] < b.minX || t[0] >= b.maxX || t[1] < b.minY || t[1] >= b.maxY) { open = true; continue; }
+          tris.push(t.join(','));
+          for (const ek of triEdges(...t)) if (E.has(ek)) { const d = dayOf(ek); if (day === null || d > day) day = d; }
+          for (const n of neigh(t[0], t[1], t[2], E)) {
+            const nk = n.join(',');
+            if (!seen.has(nk)) { seen.add(nk); q.push(n); }
+          }
+        }
+        if (!open && day !== null) { const c = storyColor(day, all); for (const tk of tris) F.set(tk, c); }
+      }
+    }
+    const groups = [...byDay].map(([d, set]) => ({ day: d, list: edgeList(set), ink: storyInk(d, all) }));
+    return storyCache = { key, all, fills: F, groups };
   }
   function paintOps(c, v, ops) {
     const X = x => v.ox + x * v.s, Y = y => v.oy + y * v.s;
@@ -691,7 +802,8 @@
   }
 
   function render(c, w, h, v, opt) {
-    const E = opt.edges || edges, F = opt.fills || fills;
+    const ST = opt.story ? storyLayers(storyUpTo) : null;
+    const E = opt.edges || edges, F = ST ? ST.fills : (opt.fills || fills);
     c.fillStyle = PAPER; c.fillRect(0, 0, w, h);
     if (opt.grid) drawGrid(c, w, h, v, opt.gridStyle || settings.grid);
 
@@ -712,12 +824,14 @@
     }
 
     // linee
-    if (E.size) paintOps(c, v, strokeOps(edgeList(E), opt.stroke || settings.stroke, v.s));
+    const st = opt.stroke || settings.stroke;
+    if (ST) for (const g of ST.groups) paintOps(c, v, strokeOps(g.list, st, v.s, g.ink));
+    else if (E.size) paintOps(c, v, strokeOps(edgeList(E), st, v.s));
   }
 
   function draw() {
     ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
-    render(ctx, W, H, view, { grid: true });
+    render(ctx, W, H, view, { grid: true, story });
     const lw = lineWidthFor(view.s);
     const S = (x, y) => [view.ox + x * view.s, view.oy + y * view.s];
 
@@ -879,6 +993,7 @@
     else if (key === 'b' || key === 'f') setTool('fill');
     else if (key === 'e') setTool('erase');
     else if (key === 'h') setTool('pan');
+    else if (key === 's') setStory(!story);
     else if (key === '+' || key === '=') zoomAt(W / 2, H / 2, 1.25);
     else if (key === '-') zoomAt(W / 2, H / 2, 0.8);
     else if (key === '0') fitView();
@@ -891,7 +1006,7 @@
     tool = t; if (t !== 'draw') endChain();
     document.querySelectorAll('[data-tool]').forEach(b => b.classList.toggle('on', b.dataset.tool === t));
     document.getElementById('hint').textContent = tr('hint.' + t);
-    updateCursor(); draw();
+    placeStory(); updateCursor(); draw();
   }
   function updateCursor() {
     cv.style.cursor = panning ? 'grabbing' : (spaceDown || tool === 'pan') ? 'grab'
@@ -934,7 +1049,7 @@
   document.getElementById('bClear').onclick = () => {
     if (!edges.size && !fills.size) return;
     if (!confirm(tr('confirm.clear'))) return;
-    pushHistory(snapshot()); edges = new Set(); fills = new Map(); endChain(); currentName = ''; changed();
+    pushHistory(snapshot()); edges = new Set(); fills = new Map(); days = new Map(); endChain(); currentName = ''; changed();
   };
 
   // ---------- impostazioni ----------
@@ -1013,7 +1128,7 @@
       box.appendChild(b);
     }
     document.getElementById('hint').textContent = tr('hint.' + tool);
-    renderSwatches(); renderBgs(); renderOpts();
+    renderSwatches(); renderBgs(); renderOpts(); renderStory();
     if (!libraryEl.hidden) renderLibrary();
   }
 
@@ -1104,7 +1219,7 @@
   document.getElementById('saveForm').onsubmit = e => { e.preventDefault(); saveToLibrary(document.getElementById('saveName').value); };
   document.getElementById('bNew').onclick = () => {
     if (edges.size || fills.size) pushHistory(snapshot());
-    edges = new Set(); fills = new Map(); endChain(); currentName = '';
+    edges = new Set(); fills = new Map(); days = new Map(); endChain(); currentName = '';
     document.getElementById('saveName').value = '';
     changed(); fitView(); renderLibrary(); openPop(null);
     toast(tr('lib.fresh'));
@@ -1164,8 +1279,9 @@
         out.push(`<path d="${d}" fill="none" stroke="${gc}" stroke-width="1"${dash}/>`);
       }
     }
+    const ST = story ? storyLayers(storyUpTo) : null;
     const groups = new Map();
-    for (const [k, c] of fills) { let g = groups.get(c); if (!g) groups.set(c, g = []); g.push(k); }
+    for (const [k, c] of (ST ? ST.fills : fills)) { let g = groups.get(c); if (!g) groups.set(c, g = []); g.push(k); }
     for (const [c, keys] of groups) {
       let d = '';
       for (const k of keys) {
@@ -1174,7 +1290,8 @@
       }
       out.push(`<path d="${d}" fill="${c}"/>`);
     }
-    if (edges.size) out.push(opsToSvg(strokeOps(edgeList(edges), settings.stroke, S), X, Y, S));
+    if (ST) for (const g of ST.groups) out.push(opsToSvg(strokeOps(g.list, settings.stroke, S, g.ink), X, Y, S));
+    else if (edges.size) out.push(opsToSvg(strokeOps(edgeList(edges), settings.stroke, S), X, Y, S));
     out.push('</svg>');
     download(new Blob([out.join('\n')], { type: 'image/svg+xml' }), `squarey-${stamp()}.svg`);
     toast(tr('toast.svgSaved'));
@@ -1186,7 +1303,7 @@
     const S = Math.min(64, 8000 / Math.max(f.wc, f.hc));
     const c = document.createElement('canvas');
     c.width = Math.round(f.wc * S); c.height = Math.round(f.hc * S);
-    render(c.getContext('2d'), c.width, c.height, { s: S, ox: -f.x0 * S, oy: -f.y0 * S }, { grid: exportGrid() });
+    render(c.getContext('2d'), c.width, c.height, { s: S, ox: -f.x0 * S, oy: -f.y0 * S }, { grid: exportGrid(), story });
     c.toBlob(b => { download(b, `squarey-${stamp()}.png`); toast(tr('toast.pngDone')); }, 'image/png');
   }
 
@@ -1215,6 +1332,72 @@
       toast(tr('toast.fileBad'));
     }
   };
+
+  // ---------- modalità storia (UI) ----------
+  const storyEl = document.getElementById('story');
+  const bStory = document.getElementById('bStory'), bPlay = document.getElementById('bPlay');
+  const PLAY_SVG = '<svg viewBox="0 0 24 24"><path d="M8.5 5.8v12.4l9.8-6.2z" stroke-linejoin="round"/></svg>';
+  const STOP_SVG = '<svg viewBox="0 0 24 24"><rect x="7" y="7" width="10" height="10" rx="2"/></svg>';
+  function fmtDay(d) {
+    if (!d) return tr('story.undated');
+    if (d === today()) return tr('story.today');
+    const [y, m, dd] = d.split('-').map(Number);
+    const o = { weekday: 'short', day: 'numeric', month: 'short' };
+    if (y !== new Date().getFullYear()) o.year = 'numeric';
+    return new Date(y, m - 1, dd).toLocaleDateString(tr('locale'), o);
+  }
+  function renderStory() {
+    bStory.classList.toggle('on', story);
+    storyEl.hidden = !story;
+    if (!story) return;
+    placeStory();
+    const all = storyDays(), list = document.getElementById('storyList');
+    list.innerHTML = '';
+    bPlay.innerHTML = playTimer ? STOP_SVG : PLAY_SVG;
+    bPlay.title = tr(playTimer ? 'story.pause' : 'story.play');
+    bPlay.disabled = !all.length;
+    if (!all.length) {
+      const e = document.createElement('div'); e.className = 'story-empty'; e.textContent = tr('story.empty');
+      list.appendChild(e); return;
+    }
+    for (const d of all) {
+      const b = document.createElement('button');
+      b.className = 'day' + (storyUpTo === d ? ' pin' : '') + (storyUpTo != null && d > storyUpTo ? ' later' : '');
+      b.title = tr('story.pick');
+      const dot = document.createElement('span'); dot.className = 'dot';
+      dot.style.background = storyColor(d, all); dot.style.borderColor = storyInk(d, all);
+      b.append(dot, fmtDay(d));
+      b.onclick = () => { stopPlay(); storyUpTo = storyUpTo === d ? null : d; renderStory(); draw(); };
+      list.appendChild(b);
+    }
+  }
+  // il pannello sta a destra, sotto la barra dei file (che può cambiare altezza con la larghezza della finestra)
+  function placeStory() {
+    if (storyEl.hidden) return;
+    const top = document.getElementById('file').getBoundingClientRect().bottom + 10;
+    storyEl.style.top = top + 'px'; storyEl.style.maxHeight = `calc(100vh - ${top + 100}px)`;
+  }
+  window.addEventListener('resize', placeStory);
+  function stopPlay() { if (playTimer) { clearTimeout(playTimer); playTimer = 0; } }
+  function setStory(on) {
+    story = on; stopPlay(); storyUpTo = null;
+    renderStory(); draw();
+    toast(tr(on ? 'story.on' : 'story.off'));
+  }
+  // riproduzione: mostra il disegno com'era alla fine di ogni giorno, uno dopo l'altro
+  function playStory() {
+    if (playTimer) { stopPlay(); storyUpTo = null; renderStory(); draw(); return; }
+    const all = storyDays(); if (!all.length) return;
+    let i = 0;
+    const step = () => {
+      if (i < all.length) { storyUpTo = all[i++]; playTimer = setTimeout(step, 1100); }
+      else { storyUpTo = null; playTimer = 0; }
+      renderStory(); draw();
+    };
+    playTimer = -1; step();
+  }
+  bStory.onclick = () => setStory(!story);
+  bPlay.onclick = playStory;
 
   // ---------- avvio ----------
   window.addEventListener('resize', resize);
